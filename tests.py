@@ -95,6 +95,25 @@ def test_respota_errada():
     
     assert len(lista) == 0
     
+def test_remove_opcao():
+    
+    pergunta = Question(title='p')
+    
+    pergunta.add_choice('a')
+    pergunta.add_choice('b')
+    pergunta.add_choice('c')
+    pergunta.add_choice('d')
+    
+    r = pergunta.choices[3]
+    
+    pergunta.remove_choice_by_id(r.id)
+    
+    assert len(pergunta.choices) == 3
+    
+    assert pergunta.choices[0].text == 'a'
+    assert pergunta.choices[1].text == 'b'
+    assert pergunta.choices[2].text == 'c'
+
 def test_remove_todas_opcoes():
     
     pergunta = Question(title='p')
@@ -118,21 +137,6 @@ def test_def_opcao_correta():
     
     assert p.choices[0].is_correct
     
-def test_def_opcoes_corretas():
-    
-    p = Question(title='p', max_selections=2)
-    
-    p.add_choice('a')
-    p.add_choice('b')
-    
-    assert not p.choices[0].is_correct
-    assert not p.choices[1].is_correct
-    
-    p.set_correct_choices([p.choices[0].id, p.choices[1].id])
-    
-    assert p.choices[0].is_correct
-    assert p.choices[1].is_correct
-    
 def test_ids_unicos_por_opcoes():
     
     p = Question('p')
@@ -151,3 +155,45 @@ def test_max_opcoes_selecionadas():
     
     with pytest.raises(Exception):
         p.correct_selected_choices([p.choices[0].id, p.choices[1].id])
+        
+@pytest.fixture
+def ids():
+    return [1,2,3]
+
+def test_varias_respostas(ids):
+    
+    pergunta = Question(title='p', max_selections=3)
+    
+    pergunta.add_choice('a', True)
+    pergunta.add_choice('b', False)
+    pergunta.add_choice('c', True)
+    
+    r1 = pergunta.choices[0]
+    r2 = pergunta.choices[1]
+    r3 = pergunta.choices[2]
+    
+    lista = pergunta.correct_selected_choices(ids)
+
+    assert len(lista) == 2
+    
+    assert lista[0] == r1.id
+    assert lista[1] == r3.id
+    
+def test_def_opcoes_corretas(ids):
+    
+    p = Question(title='p', max_selections=2)
+    
+    p.add_choice('a')
+    p.add_choice('b')
+    p.add_choice('c')
+    p.add_choice('d')
+    
+    assert not p.choices[0].is_correct
+    assert not p.choices[1].is_correct
+    assert not p.choices[2].is_correct
+    
+    p.set_correct_choices(ids)
+    
+    assert p.choices[0].is_correct
+    assert p.choices[1].is_correct
+    assert p.choices[2].is_correct
